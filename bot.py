@@ -1,6 +1,6 @@
 import logging
 import requests
-from aiogram import Bot, Dispatcher, types
+from aiogram import Bot, Dispatcher, Router
 from aiogram.types import Message
 from aiogram.filters import Command
 from aiogram import html
@@ -16,11 +16,14 @@ if not API_TOKEN:
 
 logging.basicConfig(level=logging.INFO)
 
-# Инициализация бота без использования DefaultBotProperties
+# Инициализация бота и диспетчера
 bot = Bot(token=API_TOKEN)
 dp = Dispatcher()
 
-@dp.message(Command(commands=["leaderboard", "top"]))
+# Создание отдельного роутера
+router = Router()
+
+@router.message(Command(commands=["leaderboard", "top"]))
 async def send_leaderboard(message: Message):
     response = requests.get(LEADERBOARD_URL)
     
@@ -46,12 +49,12 @@ async def send_leaderboard(message: Message):
     else:
         await message.reply("Не удалось получить таблицу лидеров. Попробуйте позже.")
 
-@dp.message(Command(commands=["start", "help"]))
+@router.message(Command(commands=["start", "help"]))
 async def send_welcome(message: Message):
     await message.reply("Привет! Отправь команду /leaderboard или /top, чтобы увидеть таблицу лидеров.")
 
 async def main():
-    dp.include_router(dp)
+    dp.include_router(router)  # Подключение роутера к диспетчеру
     await bot.delete_webhook(drop_pending_updates=True)
     await dp.start_polling(bot)
 
