@@ -7,7 +7,7 @@ from aiogram import html
 
 import asyncio
 
-API_TOKEN = 'YOUR_BOT_API_TOKEN'  # Замени на свой токен
+API_TOKEN = '7799323524:AAF-aYHgq4pTkFjt4Ly20V1FGbmoChZflnY'  
 LEADERBOARD_URL = 'https://serverflappybobr-production.up.railway.app/api/leaderboard'
 
 logging.basicConfig(level=logging.INFO)
