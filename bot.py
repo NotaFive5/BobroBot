@@ -4,15 +4,28 @@ from aiogram import Bot, Dispatcher, types
 from aiogram.types import Message
 from aiogram.filters import Command
 from aiogram import html
+from aiogram.client.session.aiohttp import AiohttpSession
+from aiogram.client.bot import Bot
+from aiogram.client.config import DefaultBotProperties
 
+import os
 import asyncio
 
-API_TOKEN = '7799323524:AAF-aYHgq4pTkFjt4Ly20V1FGbmoChZflnY'  
+API_TOKEN = os.getenv('API_TOKEN')  # Получение токена из переменной окружения
 LEADERBOARD_URL = 'https://serverflappybobr-production.up.railway.app/api/leaderboard'
+
+if not API_TOKEN:
+    raise ValueError("Не найден API_TOKEN! Убедитесь, что переменная окружения настроена правильно.")
 
 logging.basicConfig(level=logging.INFO)
 
-bot = Bot(token=API_TOKEN, parse_mode="HTML")
+# Правильная инициализация бота с использованием DefaultBotProperties
+bot = Bot(
+    token=API_TOKEN,
+    session=AiohttpSession(),
+    default=DefaultBotProperties(parse_mode="HTML")
+)
+
 dp = Dispatcher()
 
 @dp.message(Command(commands=["leaderboard", "top"]))
@@ -32,7 +45,6 @@ async def send_leaderboard(message: Message):
             username = entry.get("username", "Неизвестный")
             score = entry.get("score", 0)
             
-            # Ссылка на профиль Telegram по ID
             if username != "Неизвестный":
                 leaderboard_text += f'{position}. <a href="tg://user?id={user_id}">{html.escape(username)}</a>: {score}\n'
             else:
