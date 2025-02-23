@@ -4,9 +4,6 @@ from aiogram import Bot, Dispatcher, types
 from aiogram.types import Message
 from aiogram.filters import Command
 from aiogram import html
-from aiogram.client.session.aiohttp import AiohttpSession
-from aiogram.client.bot import Bot
-from aiogram.client.config import DefaultBotProperties
 
 import os
 import asyncio
@@ -19,13 +16,8 @@ if not API_TOKEN:
 
 logging.basicConfig(level=logging.INFO)
 
-# Правильная инициализация бота с использованием DefaultBotProperties
-bot = Bot(
-    token=API_TOKEN,
-    session=AiohttpSession(),
-    default=DefaultBotProperties(parse_mode="HTML")
-)
-
+# Инициализация бота без использования DefaultBotProperties
+bot = Bot(token=API_TOKEN)
 dp = Dispatcher()
 
 @dp.message(Command(commands=["leaderboard", "top"]))
@@ -50,7 +42,7 @@ async def send_leaderboard(message: Message):
             else:
                 leaderboard_text += f'{position}. {username}: {score}\n'
 
-        await message.reply(leaderboard_text, disable_web_page_preview=True)
+        await message.reply(leaderboard_text, parse_mode="HTML", disable_web_page_preview=True)
     else:
         await message.reply("Не удалось получить таблицу лидеров. Попробуйте позже.")
 
