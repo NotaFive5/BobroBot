@@ -2,26 +2,12 @@ import logging
 import requests
 from aiogram import Bot, Dispatcher, types
 from aiogram.types import Message
-from aiogram.utils.markdown import hbold, hlink
-from aiogram import F, Router
 from aiogram.filters import Command
-from aiogram import html
-from aiogram.utils import executor
-from aiogram import Router
-from aiogram.fsm.storage.memory import MemoryStorage
-from aiogram import Dispatcher
-from aiogram import Bot
-from aiogram import types
-from aiogram.types import BotCommand
-from aiogram.types import Message
-from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
-from aiogram.filters import Command
-from aiogram.utils.markdown import hbold, hlink
 from aiogram import html
 
 import asyncio
 
-API_TOKEN = 'YOUR_BOT_API_TOKEN'
+API_TOKEN = 'YOUR_BOT_API_TOKEN'  # Замени на свой токен
 LEADERBOARD_URL = 'https://serverflappybobr-production.up.railway.app/api/leaderboard'
 
 logging.basicConfig(level=logging.INFO)
