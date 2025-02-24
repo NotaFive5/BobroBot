@@ -25,29 +25,28 @@ router = Router()
 
 @router.message(Command(commands=["leaderboard", "top"]))
 async def send_leaderboard(message: Message):
-    response = requests.get(LEADERBOARD_URL)
-    
-    if response.status_code == 200:
-        leaderboard = response.json()
-        if not leaderboard:
-            await message.reply("Пока нет данных для таблицы лидеров.")
-            return
-        
-        leaderboard_text = "🏆 <b>Таблица лидеров:</b>\n\n"
-        for entry in leaderboard:
-            position = entry.get("position", "N/A")
-            user_id = entry.get("user_id", "Неизвестный")
-            username = entry.get("username", "Неизвестный")
-            score = entry.get("score", 0)
-            
-            if username != "Неизвестный":
-                leaderboard_text += f'{position}. <a href="tg://user?id={user_id}">{html.escape(username)}</a>: {score}\n'
-            else:
-                leaderboard_text += f'{position}. {username}: {score}\n'
-
-        await message.reply(leaderboard_text, parse_mode="HTML", disable_web_page_preview=True)
-    else:
+    try:
+        response = requests.get(LEADERBOARD_URL, timeout=10)  # Таймаут для предотвращения зависания
+        response.raise_for_status()  # Генерирует исключение для кода ошибки HTTP
+    except requests.RequestException as e:
+        logging.error(f"Ошибка при запросе таблицы лидеров: {e}")
         await message.reply("Не удалось получить таблицу лидеров. Попробуйте позже.")
+        return
+    
+    leaderboard = response.json()
+    if not leaderboard:
+        await message.reply("Пока нет данных для таблицы лидеров.")
+        return
+
+    leaderboard_text = "🏆 <b>Таблица лидеров:</b>\n\n"
+    for entry in leaderboard:
+        position = entry.get("position", "N/A")
+        username = entry.get("username", "Неизвестный")
+        score = entry.get("score", 0)
+
+        leaderboard_text += f'{position}. {html.escape(username)}: {score}\n'
+
+    await message.reply(leaderboard_text, parse_mode="HTML", disable_web_page_preview=True)
 
 @router.message(Command(commands=["start", "help"]))
 async def send_welcome(message: Message):
