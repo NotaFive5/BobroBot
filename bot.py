@@ -48,9 +48,16 @@ async def send_leaderboard(message: Message):
     for index, entry in enumerate(leaderboard, start=1):
         username = entry.get("username", "Неизвестный")
         score = entry.get("score", 0)
-        leaderboard_text += f'{index}. {html.escape(username)}: {score}\n'
+        leaderboard_text += f'{index}. {std_html.escape(username)}: {score}\n'
 
-    await message.reply(leaderboard_text, parse_mode="HTML", disable_web_page_preview=True)
+    logging.info(f"Подготовленный текст для отправки:\n{leaderboard_text}")
+
+    try:
+        await message.reply(leaderboard_text, parse_mode="HTML", disable_web_page_preview=True)
+        logging.info("Сообщение отправлено успешно.")
+    except Exception as e:
+        logging.error(f"Ошибка при отправке сообщения в Telegram: {e}")
+
 
 
 
