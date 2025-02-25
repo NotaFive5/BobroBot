@@ -6,6 +6,8 @@ from aiogram.filters import Command
 from aiogram import html
 import os
 import asyncio
+import html as std_html
+
 
 API_TOKEN = os.getenv('API_TOKEN')  # Токен Telegram-бота
 SERVER_URL = 'https://serverflappybobr-production.up.railway.app'  # Публичный URL сервера
