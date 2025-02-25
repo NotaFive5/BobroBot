@@ -7,7 +7,7 @@ from aiogram import html
 import os
 import asyncio
 
-API_TOKEN = os.getenv('API_TOKEN')  # Токен Telegram-бота
+API_TOKEN = os.getenv('API_TOKEN')
 SERVER_URL = 'https://serverflappybobr-production.up.railway.app'
 
 if not API_TOKEN:
@@ -45,35 +45,6 @@ async def send_leaderboard(message: Message):
         leaderboard_text += f'{position}. {html.escape(username)}: {score}\n'
 
     await message.reply(leaderboard_text, parse_mode="HTML", disable_web_page_preview=True)
-
-# 🚦 **Вывод лучшего счёта конкретного пользователя**
-@router.message(Command(commands=["my_score"]))
-async def send_my_score(message: Message):
-    username = message.from_user.username
-    if not username:
-        await message.reply("У вас отсутствует username в Telegram. Установите его в настройках Telegram.")
-        return
-
-    try:
-        response = requests.get(f"{SERVER_URL}/api/user_score/{username}", timeout=10)
-        response.raise_for_status()
-    except requests.RequestException as e:
-        logging.error(f"Ошибка при запросе данных пользователя {username}: {e}")
-        await message.reply("Не удалось получить ваш лучший результат. Попробуйте позже.")
-        return
-
-    data = response.json()
-    best_score = data.get("best_score", 0)
-    await message.reply(f"Ваш лучший результат: {best_score} очков.")
-
-# 🚦 **Приветственное сообщение**
-@router.message(Command(commands=["start", "help"]))
-async def send_welcome(message: Message):
-    await message.reply(
-        "Привет! Вот доступные команды:\n"
-        "/my_score - Посмотреть ваш лучший результат\n"
-        "/leaderboard [количество] - Показать таблицу лидеров (по умолчанию 10)"
-    )
 
 async def main():
     dp.include_router(router)
