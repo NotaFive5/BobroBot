@@ -25,31 +25,28 @@ async def send_leaderboard(message: Message):
     try:
         args = message.text.split()
         limit = int(args[1]) if len(args) > 1 and args[1].isdigit() else 10
-        
-        # Отладочное сообщение для проверки URL запроса
-        await message.reply(f"Запрос: {SERVER_URL}/api/leaderboard?limit={limit}")
-
         response = requests.get(f"{SERVER_URL}/api/leaderboard?limit={limit}", timeout=10)
         response.raise_for_status()
-
-        leaderboard = response.json()
-        if not leaderboard:
-            await message.reply("Пока нет данных для таблицы лидеров.")
-            return
-
-        leaderboard_text = "🏆 <b>Таблица лидеров:</b>\n\n"
-        
-        # Генерация позиции вручную
-        for index, entry in enumerate(leaderboard, start=1):
-            username = entry.get("username", "Неизвестный")
-            score = entry.get("score", 0)
-            leaderboard_text += f'{index}. {html.escape(username)}: {score}\n'
-
-        await message.reply(leaderboard_text, parse_mode="HTML", disable_web_page_preview=True)
-
     except requests.RequestException as e:
         logging.error(f"Ошибка при запросе таблицы лидеров: {e}")
         await message.reply("Не удалось получить таблицу лидеров. Попробуйте позже.")
+        return
+
+    leaderboard = response.json()
+    if not leaderboard:
+        await message.reply("Пока нет данных для таблицы лидеров.")
+        return
+
+    # Формирование текстового сообщения, избегая отправки ссылок или файлов
+    leaderboard_text = "🏆 <b>Таблица лидеров:</b>\n\n"
+    for index, entry in enumerate(leaderboard, start=1):
+        username = entry.get("username", "Неизвестный")
+        score = entry.get("score", 0)
+        leaderboard_text += f'{index}. {html.escape(username)}: {score}\n'
+
+    # Отправка чистого текста без ссылки или файла
+    await message.reply(leaderboard_text, parse_mode="HTML", disable_web_page_preview=True)
+
 
 
 # 🚦 **Вывод лучшего счёта конкретного пользователя**
