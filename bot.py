@@ -121,7 +121,7 @@ async def send_leaderboard(message: Message, limit: int = 10):
 async def send_my_score(callback_query: CallbackQuery):
     username = callback_query.from_user.username  # Получаем username напрямую из callback_query
     if not username:
-        await callback_query.message.reply("У вас отсутствует username в Telegram. Установите его в настройках Telegram.")
+        await callback_query.answer("У вас отсутствует username в Telegram. Установите его в настройках Telegram.", show_alert=True)
         return
 
     logging.info(f"Запрос очков для пользователя: {username}")
@@ -135,12 +135,19 @@ async def send_my_score(callback_query: CallbackQuery):
 
     except requests.RequestException as e:
         logging.error(f"Ошибка при запросе данных пользователя {username}: {e}")
-        await callback_query.message.reply("Не удалось получить ваш лучший результат. Попробуйте позже.")
+        await callback_query.answer("Не удалось получить ваш лучший результат. Попробуйте позже.", show_alert=True)
         return
 
     data = response.json()
     best_score = data.get("best_score", 0)
-    await callback_query.message.reply(f"Ваш лучший результат: {best_score} очков.")
+
+    # Используем callback_query.answer вместо message.reply для более стабильного ответа
+    response_text = f"Ваш лучший результат: {best_score} очков."
+    if callback_query.message:
+        await callback_query.message.reply(response_text)
+    else:
+        await callback_query.answer(response_text, show_alert=True)
+
 
 
 # 🚦 **Запуск бота**
