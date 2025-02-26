@@ -56,7 +56,7 @@ async def send_start_message(message: Message):
 
 
 # 🚦 **Приветственное сообщение с inline-кнопками (для /hi)**
-@router.message(Command(commands=["hi"]))
+@router.message(lambda message: message.text == "Меню")
 async def send_hi(message: Message):
     await message.reply(
         "Ты можешь посмотреть результаты игры здесь:",
