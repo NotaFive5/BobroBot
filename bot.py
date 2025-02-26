@@ -141,8 +141,9 @@ async def send_my_score(callback_query: CallbackQuery):
     data = response.json()
     best_score = data.get("best_score", 0)
 
-    # Используем callback_query.answer вместо message.reply для более стабильного ответа
     response_text = f"Ваш лучший результат: {best_score} очков."
+
+    # Проверяем, существует ли сообщение в callback_query
     if callback_query.message:
         await callback_query.message.reply(response_text)
     else:
