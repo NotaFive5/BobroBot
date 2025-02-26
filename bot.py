@@ -20,12 +20,11 @@ logging.basicConfig(level=logging.INFO)
 bot = Bot(token=API_TOKEN)
 dp = Dispatcher()
 router = Router()
-ikb_scoreResult = InlineKeyboardMarkup(row_width=2)
-
-ib_myScore = InlineKeyboardButton(text='Мои очки',
-                                  callback_data="my_score")
-
-ikb_scoreResult.add(ib_myScore)
+ikb_scoreResult = InlineKeyboardMarkup(inline_keyboard=[
+    [InlineKeyboardButton(text='Мои очки', callback_data="my_score")],
+    [InlineKeyboardButton(text='Топ 10', callback_data="leaderboard_10")],
+    [InlineKeyboardButton(text='Топ 20', callback_data="leaderboard_20")]
+])
                                   
 
 @router.message(Command(commands=["hi"]))
