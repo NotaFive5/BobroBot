@@ -43,7 +43,7 @@ async def send_welcome(message: Message):
         reply_markup=commands_keyboard  # Отображение клавиатуры команд
         
 # 🚦 **Приветственное сообщение с кнопками**
-@router.message(Command(commands=["hi", "start", "help"]))
+@router.message(Command(commands=["hi"))
 async def send_welcome(message: Message):
     await message.reply(
         "Ты можешь посмотреть результаты игры здесь:",
