@@ -69,13 +69,42 @@ async def handle_callback_query(callback_query: CallbackQuery):
     data = callback_query.data
 
     if data == "my_score":
-        await send_my_score(callback_query.message)
+        await handle_my_score(callback_query)  # Передаем callback_query в отдельную функцию
     elif data == "leaderboard_10":
         await send_leaderboard(callback_query.message, limit=10)
     elif data == "leaderboard_20":
         await send_leaderboard(callback_query.message, limit=20)
 
-    await callback_query.answer()
+    await callback_query.answer()  # Подтверждаем обработку callback-запроса
+
+# 🚦 **Обработка кнопки "Мои очки"**
+@router.callback_query(lambda callback_query: callback_query.data == "my_score")
+async def handle_my_score(callback_query: CallbackQuery):
+    username = callback_query.from_user.username
+    if not username:
+        await callback_query.answer(
+            "У вас отсутствует username в Telegram. Установите его в настройках Telegram.",
+            show_alert=True
+        )
+        return
+
+    try:
+        response = requests.get(f"{SERVER_URL}/api/user_score/{username}", timeout=10)
+        response.raise_for_status()
+    except requests.RequestException as e:
+        logging.error(f"Ошибка при запросе данных пользователя {username}: {e}")
+        await callback_query.answer(
+            "Не удалось получить ваш лучший результат. Попробуйте позже.",
+            show_alert=True
+        )
+        return
+
+    data = response.json()
+    best_score = data.get("best_score", 0)
+
+    # Отправляем ответ пользователю
+    await callback_query.message.answer(f"Ваш лучший результат: {best_score} очков.")
+    await callback_query.answer()  # Подтверждаем обработку callback-запроса
 
 # 🚦 **Таблица лидеров с динамическим количеством участников**
 async def send_leaderboard(message: Message, limit: int = 10):
@@ -116,46 +145,6 @@ async def send_leaderboard(message: Message, limit: int = 10):
         logging.info("Сообщение отправлено успешно.")
     except Exception as e:
         logging.error(f"Ошибка при отправке сообщения в Telegram: {e}")
-
-# 🚦 **Вывод лучшего счёта конкретного пользователя**
-async def send_my_score(callback_query: CallbackQuery):
-    username = callback_query.from_user.username
-    if not username:
-        await callback_query.answer(
-            "У вас отсутствует username в Telegram. Установите его в настройках Telegram.",
-            show_alert=True
-        )
-        return
-
-    logging.info(f"Запрос очков для пользователя: {username}")
-
-    try:
-        response = requests.get(f"{SERVER_URL}/api/user_score/{username}", timeout=10)
-        response.raise_for_status()
-
-        # Логируем ответ сервера для отладки
-        logging.info(f"Ответ от сервера для пользователя {username}: {response.text}")
-
-    except requests.RequestException as e:
-        logging.error(f"Ошибка при запросе данных пользователя {username}: {e}")
-        await callback_query.answer(
-            "Не удалось получить ваш лучший результат. Попробуйте позже.",
-            show_alert=True
-        )
-        return
-
-    data = response.json()
-    best_score = data.get("best_score", 0)
-
-    response_text = f"Ваш лучший результат: {best_score} очков."
-
-    # Безопасная отправка ответа пользователю
-    if callback_query.message:
-        await callback_query.message.answer(response_text)
-    else:
-        await callback_query.answer(response_text, show_alert=True)
-
-
 
 # 🚦 **Запуск бота**
 async def main():
