@@ -21,7 +21,7 @@ bot = Bot(token=API_TOKEN)
 dp = Dispatcher()
 router = Router()
 
-@router.message(Command(commands=["start", "help"]))
+@router.message(Command(commands=["help"]))
 async def send_welcome(message: Message):
     keyboard = InlineKeyboardMarkup()
     buttons = [
