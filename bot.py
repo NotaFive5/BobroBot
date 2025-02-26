@@ -61,14 +61,19 @@ async def send_leaderboard(message: Message):
         await message.reply("Пока нет данных для таблицы лидеров.")
         return
 
-    leaderboard_text = "🏆 <b>Таблица лидеров:</b>\n\n"
+  leaderboard_text = "🏆 <b>Таблица лидеров:</b>\n\n"
     for index, entry in enumerate(leaderboard, start=1):
         username = entry.get("username", "Неизвестный")
         score = entry.get("score", 0)
-        leaderboard_text += f'{index}. {std_html.escape(username)}: {score}\n'leaderboard_text = "🏆 <b>Таблица лидеров:</b>\n\n"
-for index, entry in enumerate(leaderboard, start=1):
-    username = entry.get("username", "Неизвестный")
-    score = entry.get("score", 0)
+        
+        # Если username существует, делаем его кликабельным, иначе выводим текст "Неизвестный"
+        if username != "Неизвестный":
+            username_link = f'<a href="https://t.me/{std_html.escape(username)}">@{std_html.escape(username)}</a>'
+        else:
+            username_link = "Неизвестный"
+    
+        leaderboard_text += f'{index}. {username_link}: {score}\n'
+
     
     # Если username существует, делаем его кликабельным, иначе выводим текст "Неизвестный"
     if username != "Неизвестный":
