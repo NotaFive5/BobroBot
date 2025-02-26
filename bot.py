@@ -6,7 +6,7 @@ from aiogram.filters import Command
 import os
 import asyncio
 import html as std_html
-from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, ReplyKeyboardMarkup, KeyboardButton
 
 API_TOKEN = os.getenv('API_TOKEN')  # Токен Telegram-бота
 SERVER_URL = 'https://serverflappybobr-production.up.railway.app'  # Публичный URL сервера
@@ -34,17 +34,20 @@ commands_keyboard = ReplyKeyboardMarkup(
     ],
     resize_keyboard=True,  # Делает клавиатуру компактной
     one_time_keyboard=True,  # Клавиатура остается на экране после нажатия
-    input_field_placeholder="KURWA"
-# 🚦 **Приветственное сообщение с кнопками**
+    input_field_placeholder="KURWA"  # Подсказка в поле ввода
+)
+
+# 🚦 **Приветственное сообщение с кнопками (для /start и /help)**
 @router.message(Command(commands=["start", "help"]))
 async def send_welcome(message: Message):
     await message.reply(
         "Ты можешь посмотреть результаты игры здесь:",
         reply_markup=commands_keyboard  # Отображение клавиатуры команд
-        
-# 🚦 **Приветственное сообщение с кнопками**
-@router.message(Command(commands=["hi"))
-async def send_welcome(message: Message):
+    )
+
+# 🚦 **Приветственное сообщение с inline-кнопками (для /hi)**
+@router.message(Command(commands=["hi"]))
+async def send_hi(message: Message):
     await message.reply(
         "Ты можешь посмотреть результаты игры здесь:",
         reply_markup=ikb_scoreResult
@@ -89,7 +92,6 @@ async def send_leaderboard(message: Message, limit: int = 10):
         username = entry.get("username", "Неизвестный")
         score = entry.get("score", 0)
 
-        # Если username существует, делаем его кликабельным, иначе выводим текст "Неизвестный"
         if username != "Неизвестный":
             username_link = f'<a href="https://t.me/{std_html.escape(username)}">@{std_html.escape(username)}</a>'
         else:
@@ -131,4 +133,4 @@ async def main():
     await dp.start_polling(bot)
 
 if __name__ == '__main__':
-    asyncio.run(main()) нужно чтобы hi была в той клавиатуре
+    asyncio.run(main())
