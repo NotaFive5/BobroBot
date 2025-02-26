@@ -119,7 +119,7 @@ async def send_leaderboard(message: Message, limit: int = 10):
 
 # 🚦 **Вывод лучшего счёта конкретного пользователя**
 async def send_my_score(callback_query: CallbackQuery):
-    username = callback_query.from_user.username  # Получаем username напрямую из CallbackQuery
+    username = callback_query.from_user.username  # Получаем username напрямую из callback_query
     if not username:
         await callback_query.message.reply("У вас отсутствует username в Telegram. Установите его в настройках Telegram.")
         return
