@@ -20,21 +20,20 @@ logging.basicConfig(level=logging.INFO)
 bot = Bot(token=API_TOKEN)
 dp = Dispatcher()
 router = Router()
+ikb_scoreResult = InlineKeyboardMarkup(row_width=2)
 
-@router.message(Command(commands=["test"]))
-async def send_welcome(message: Message):
-    keyboard = InlineKeyboardMarkup()
-    buttons = [
-        InlineKeyboardButton(text="Мой результат", callback_data="my_score"),
-        InlineKeyboardButton(text="Топ 10", callback_data="leaderboard_10"),
-        InlineKeyboardButton(text="Топ 20", callback_data="leaderboard_20")
-    ]
-    keyboard.add(*buttons)
+ib_myScore = InlineKeyboardMarkup(text='Мои очки',
+                                  callback_data="my_score")
 
-    await message.reply(
-        "Привет! Выберите нужную команду:",
-        reply_markup=keyboard
-    )
+ikb_scoreResult.add(ib_myScore)
+                                  
+
+@dp.message_handler(commands=["hi"])
+async def send_welcome(message: types.Message):
+    await bot.send_message (chat_id=message.from_user.id,
+                            text="Ты можешь посмотреть результаты игры здесь",
+                            reply_markup=ikb_scoreResult)
+    
 
 
 # 🚦 **Таблица лидеров с динамическим количеством участников**
