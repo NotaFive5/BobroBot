@@ -1,9 +1,8 @@
 import logging
 import requests
 from aiogram import Bot, Dispatcher, Router
-from aiogram.types import Message
+from aiogram.types import Message, CallbackQuery
 from aiogram.filters import Command
-from aiogram import html
 import os
 import asyncio
 import html as std_html
@@ -20,32 +19,41 @@ logging.basicConfig(level=logging.INFO)
 bot = Bot(token=API_TOKEN)
 dp = Dispatcher()
 router = Router()
+
+# 🚦 **Создание inline-клавиатуры**
 ikb_scoreResult = InlineKeyboardMarkup(inline_keyboard=[
     [InlineKeyboardButton(text='Мои очки', callback_data="my_score")],
     [InlineKeyboardButton(text='Топ 10', callback_data="leaderboard_10")],
     [InlineKeyboardButton(text='Топ 20', callback_data="leaderboard_20")]
 ])
-                                  
 
-@router.message(Command(commands=["hi"]))
+# 🚦 **Приветственное сообщение с кнопками**
+@router.message(Command(commands=["hi", "start", "help"]))
 async def send_welcome(message: Message):
     await message.reply(
-        "Ты можешь посмотреть результаты игры здесь",
+        "Ты можешь посмотреть результаты игры здесь:",
         reply_markup=ikb_scoreResult
     )
-    
 
+# 🚦 **Обработка нажатий на inline-кнопки**
+@router.callback_query()
+async def handle_callback_query(callback_query: CallbackQuery):
+    data = callback_query.data
+
+    if data == "my_score":
+        await send_my_score(callback_query.message)
+    elif data == "leaderboard_10":
+        await send_leaderboard(callback_query.message, limit=10)
+    elif data == "leaderboard_20":
+        await send_leaderboard(callback_query.message, limit=20)
+
+    await callback_query.answer()
 
 # 🚦 **Таблица лидеров с динамическим количеством участников**
-@router.message(Command(commands=["leaderboard", "top"]))
-async def send_leaderboard(message: Message):
+async def send_leaderboard(message: Message, limit: int = 10):
     logging.info("Команда /leaderboard получена")
 
     try:
-        args = message.text.split()
-        limit = int(args[1]) if len(args) > 1 and args[1].isdigit() else 10
-        logging.info(f"Запрос к серверу: {SERVER_URL}/api/leaderboard?limit={limit}")
-        
         response = requests.get(f"{SERVER_URL}/api/leaderboard?limit={limit}", timeout=10)
         response.raise_for_status()
         logging.info("Данные успешно получены от сервера")
@@ -61,20 +69,18 @@ async def send_leaderboard(message: Message):
         await message.reply("Пока нет данных для таблицы лидеров.")
         return
 
-  leaderboard_text = "🏆 <b>Таблица лидеров:</b>\n\n"
+    leaderboard_text = "🏆 <b>Таблица лидеров:</b>\n\n"
     for index, entry in enumerate(leaderboard, start=1):
         username = entry.get("username", "Неизвестный")
         score = entry.get("score", 0)
 
-    
-    # Если username существует, делаем его кликабельным, иначе выводим текст "Неизвестный"
-    if username != "Неизвестный":
-        username_link = f'<a href="https://t.me/{std_html.escape(username)}">@{std_html.escape(username)}</a>'
-    else:
-        username_link = "Неизвестный"
+        # Если username существует, делаем его кликабельным, иначе выводим текст "Неизвестный"
+        if username != "Неизвестный":
+            username_link = f'<a href="https://t.me/{std_html.escape(username)}">@{std_html.escape(username)}</a>'
+        else:
+            username_link = "Неизвестный"
 
-    leaderboard_text += f'{index}. {username_link}: {score}\n'
-
+        leaderboard_text += f'{index}. {username_link}: {score}\n'
 
     logging.info(f"Подготовленный текст для отправки:\n{leaderboard_text}")
 
@@ -84,12 +90,7 @@ async def send_leaderboard(message: Message):
     except Exception as e:
         logging.error(f"Ошибка при отправке сообщения в Telegram: {e}")
 
-
-
-
-
 # 🚦 **Вывод лучшего счёта конкретного пользователя**
-@router.message(Command(commands=["my_score"]))
 async def send_my_score(message: Message):
     username = message.from_user.username
     if not username:
@@ -108,15 +109,7 @@ async def send_my_score(message: Message):
     best_score = data.get("best_score", 0)
     await message.reply(f"Ваш лучший результат: {best_score} очков.")
 
-# 🚦 **Приветственное сообщение**
-@router.message(Command(commands=["start", "help"]))
-async def send_welcome(message: Message):
-    await message.reply(
-        "Привет! Вот доступные команды:\n"
-        "/my_score - Посмотреть ваш лучший результат\n"
-        "/leaderboard [количество] - Показать таблицу лидеров (по умолчанию 10)"
-    )
-
+# 🚦 **Запуск бота**
 async def main():
     dp.include_router(router)
     await bot.delete_webhook(drop_pending_updates=True)
