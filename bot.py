@@ -7,7 +7,7 @@ from aiogram import html
 import os
 import asyncio
 import html as std_html
-from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
 API_TOKEN = os.getenv('API_TOKEN')  # Токен Telegram-бота
 SERVER_URL = 'https://serverflappybobr-production.up.railway.app'  # Публичный URL сервера
@@ -23,11 +23,11 @@ router = Router()
 
 @router.message(Command(commands=["start", "help"]))
 async def send_welcome(message: Message):
-    keyboard = ReplyKeyboardMarkup(resize_keyboard=True)
+    keyboard = InlineKeyboardMarkup()
     buttons = [
-        KeyboardButton(text="/my_score"),
-        KeyboardButton(text="/leaderboard 10"),
-        KeyboardButton(text="/leaderboard 20")
+        InlineKeyboardButton(text="Мой результат", callback_data="my_score"),
+        InlineKeyboardButton(text="Топ 10", callback_data="leaderboard_10"),
+        InlineKeyboardButton(text="Топ 20", callback_data="leaderboard_20")
     ]
     keyboard.add(*buttons)
 
@@ -35,6 +35,7 @@ async def send_welcome(message: Message):
         "Привет! Выберите нужную команду:",
         reply_markup=keyboard
     )
+
 
 # 🚦 **Таблица лидеров с динамическим количеством участников**
 @router.message(Command(commands=["leaderboard", "top"]))
