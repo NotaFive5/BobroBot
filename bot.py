@@ -6,7 +6,7 @@ from aiogram.filters import Command
 import os
 import asyncio
 import html as std_html
-from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, ReplyKeyboardMarkup, KeyboardButton
 
 API_TOKEN = os.getenv('API_TOKEN')  # Токен Telegram-бота
 SERVER_URL = 'https://serverflappybobr-production.up.railway.app'  # Публичный URL сервера
@@ -27,12 +27,25 @@ ikb_scoreResult = InlineKeyboardMarkup(inline_keyboard=[
     [InlineKeyboardButton(text='Топ 20', callback_data="leaderboard_20")]
 ])
 
+# 🚦 **Создание клавиатуры команд рядом с полем ввода**
+commands_keyboard = ReplyKeyboardMarkup(
+    keyboard=[
+        [KeyboardButton(text="/hi")],
+        [KeyboardButton(text="/my_score")],
+        [KeyboardButton(text="/leaderboard 10")],
+        [KeyboardButton(text="/leaderboard 20")]
+    ],
+    resize_keyboard=True,  # Делает клавиатуру компактной
+    one_time_keyboard=False,  # Клавиатура остается на экране после нажатия
+    input_field_placeholder="Выберите команду"
+)
+
 # 🚦 **Приветственное сообщение с кнопками**
 @router.message(Command(commands=["hi", "start", "help"]))
 async def send_welcome(message: Message):
     await message.reply(
         "Ты можешь посмотреть результаты игры здесь:",
-        reply_markup=ikb_scoreResult
+        reply_markup=commands_keyboard  # Отображение клавиатуры команд
     )
 
 # 🚦 **Обработка нажатий на inline-кнопки**
@@ -74,7 +87,6 @@ async def send_leaderboard(message: Message, limit: int = 10):
         username = entry.get("username", "Неизвестный")
         score = entry.get("score", 0)
 
-        # Если username существует, делаем его кликабельным, иначе выводим текст "Неизвестный"
         if username != "Неизвестный":
             username_link = f'<a href="https://t.me/{std_html.escape(username)}">@{std_html.escape(username)}</a>'
         else:
