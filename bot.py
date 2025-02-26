@@ -22,17 +22,18 @@ dp = Dispatcher()
 router = Router()
 ikb_scoreResult = InlineKeyboardMarkup(row_width=2)
 
-ib_myScore = InlineKeyboardMarkup(text='Мои очки',
+ib_myScore = InlineKeyboardButton(text='Мои очки',
                                   callback_data="my_score")
 
 ikb_scoreResult.add(ib_myScore)
                                   
 
-@dp.message_handler(commands=["hi"])
-async def send_welcome(message: types.Message):
-    await bot.send_message (chat_id=message.from_user.id,
-                            text="Ты можешь посмотреть результаты игры здесь",
-                            reply_markup=ikb_scoreResult)
+@router.message(Command(commands=["hi"]))
+async def send_welcome(message: Message):
+    await message.reply(
+        "Ты можешь посмотреть результаты игры здесь",
+        reply_markup=ikb_scoreResult
+    )
     
 
 
