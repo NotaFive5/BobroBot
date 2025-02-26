@@ -119,9 +119,12 @@ async def send_leaderboard(message: Message, limit: int = 10):
 
 # 🚦 **Вывод лучшего счёта конкретного пользователя**
 async def send_my_score(callback_query: CallbackQuery):
-    username = callback_query.from_user.username  # Получаем username напрямую из callback_query
+    username = callback_query.from_user.username
     if not username:
-        await callback_query.answer("У вас отсутствует username в Telegram. Установите его в настройках Telegram.", show_alert=True)
+        await callback_query.answer(
+            "У вас отсутствует username в Telegram. Установите его в настройках Telegram.",
+            show_alert=True
+        )
         return
 
     logging.info(f"Запрос очков для пользователя: {username}")
@@ -135,7 +138,10 @@ async def send_my_score(callback_query: CallbackQuery):
 
     except requests.RequestException as e:
         logging.error(f"Ошибка при запросе данных пользователя {username}: {e}")
-        await callback_query.answer("Не удалось получить ваш лучший результат. Попробуйте позже.", show_alert=True)
+        await callback_query.answer(
+            "Не удалось получить ваш лучший результат. Попробуйте позже.",
+            show_alert=True
+        )
         return
 
     data = response.json()
@@ -143,9 +149,9 @@ async def send_my_score(callback_query: CallbackQuery):
 
     response_text = f"Ваш лучший результат: {best_score} очков."
 
-    # Проверяем, существует ли сообщение в callback_query
+    # Безопасная отправка ответа пользователю
     if callback_query.message:
-        await callback_query.message.reply(response_text)
+        await callback_query.message.answer(response_text)
     else:
         await callback_query.answer(response_text, show_alert=True)
 
