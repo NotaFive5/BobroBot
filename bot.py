@@ -187,6 +187,54 @@ async def send_leaderboard(message: Message, limit: int = 10):
 
     await message.reply(leaderboard_text, parse_mode="HTML", disable_web_page_preview=True)
 
+@router.message(Command(commands=["my_referrals"]))
+async def check_my_referrals(message: Message):
+    username = message.from_user.username
+    if not username:
+        await message.reply("У вас отсутствует username в Telegram. Установите его в настройках Telegram.")
+        return
+
+    try:
+        # Запрос количества рефералов у сервера
+        response = requests.get(f"{SERVER_URL}/api/my_referrals/{username}", timeout=10)
+        response.raise_for_status()
+        data = response.json()
+
+        if data.get("success"):
+            referral_count = data.get("referralCount", 0)
+            await message.reply(f"Количество ваших рефералов: {referral_count}")
+        else:
+            await message.reply(data.get("message", "Не удалось получить количество рефералов."))
+    except requests.RequestException as e:
+        logging.error(f"Ошибка при запросе количества рефералов: {e}")
+        await message.reply("Не удалось получить количество рефералов. Попробуйте позже.")
+
+@router.message(Command(commands=["all_referrals"]))
+async def check_all_referrals(message: Message):
+    try:
+        # Запрос общего списка рефералов у сервера
+        response = requests.get(f"{SERVER_URL}/api/all_referrals", timeout=10)
+        response.raise_for_status()
+        data = response.json()
+
+        if data.get("success"):
+            referral_list = data.get("referralList", [])
+            if not referral_list:
+                await message.reply("Пока нет данных о рефералах.")
+                return
+
+            # Формируем текст для отправки
+            referral_text = "🏆 <b>Общий список рефералов:</b>\n\n"
+            for entry in referral_list:
+                referral_text += f"@{entry['username']}: {entry['referralCount']} рефералов\n"
+
+            await message.reply(referral_text, parse_mode="HTML")
+        else:
+            await message.reply(data.get("message", "Не удалось получить общий список рефералов."))
+    except requests.RequestException as e:
+        logging.error(f"Ошибка при запросе общего списка рефералов: {e}")
+        await message.reply("Не удалось получить общий список рефералов. Попробуйте позже.")
+
 # 🚦 **Запуск бота**
 async def main():
     dp.include_router(router)
