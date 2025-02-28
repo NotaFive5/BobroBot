@@ -97,13 +97,31 @@ async def handle_callback_query(callback_query: CallbackQuery):
     data = callback_query.data
 
     if data == "my_score":
-        await send_my_score(callback_query.message)
+        await send_my_score(callback_query.message, callback_query.from_user)
     elif data == "leaderboard_10":
         await send_leaderboard(callback_query.message, limit=10)
     elif data == "leaderboard_20":
         await send_leaderboard(callback_query.message, limit=20)
 
     await callback_query.answer()
+
+async def send_my_score(message: Message, user: types.User):
+    username = user.username
+    if not username:
+        await message.reply("У вас отсутствует username в Telegram. Установите его в настройках Telegram.")
+        return
+
+    logging.info(f"Запрос очков для пользователя: {username}")
+
+    try:
+        response = requests.get(f"{SERVER_URL}/api/user_score/{username}", timeout=10)
+        response.raise_for_status()
+        data = response.json()
+        best_score = data.get("best_score", 0)
+        await message.reply(f"Ваш лучший результат: {best_score} очков.")
+    except requests.RequestException as e:
+        logging.error(f"Ошибка при запросе данных пользователя {username}: {e}")
+        await message.reply("Не удалось получить ваш лучший результат. Попробуйте позже.")
 
 # 🚦 **Таблица лидеров с динамическим количеством участников**
 async def send_leaderboard(message: Message, limit: int = 10):
@@ -139,6 +157,7 @@ async def send_leaderboard(message: Message, limit: int = 10):
 
 # 🚦 **Вывод лучшего счёта конкретного пользователя**
 async def send_my_score(message: Message):
+    # Получаем username пользователя, который отправил сообщение
     username = message.from_user.username
     if not username:
         await message.reply("У вас отсутствует username в Telegram. Установите его в настройках Telegram.")
@@ -147,6 +166,7 @@ async def send_my_score(message: Message):
     logging.info(f"Запрос очков для пользователя: {username}")
 
     try:
+        # Запрос очков пользователя у сервера
         response = requests.get(f"{SERVER_URL}/api/user_score/{username}", timeout=10)
         response.raise_for_status()
         data = response.json()
