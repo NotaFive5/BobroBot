@@ -3,6 +3,7 @@ import requests
 from aiogram import Bot, Dispatcher, Router
 from aiogram.types import Message, CallbackQuery
 from aiogram.filters import Command
+from aiogram import types
 import os
 import asyncio
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, ReplyKeyboardMarkup, KeyboardButton
