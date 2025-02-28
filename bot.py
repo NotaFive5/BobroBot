@@ -73,8 +73,16 @@ async def send_referral_link(message: Message):
     try:
         # Запрос реферальной ссылки у сервера
         response = requests.get(f"{SERVER_URL}/api/referral_link/{username}")
-        response.raise_for_status()
-        referral_link = response.json().get("referralLink")  # Исправлено на referralLink
+        
+        # Если ссылка не найдена, создаём её
+        if response.status_code == 404:
+            create_response = requests.post(f"{SERVER_URL}/api/generate_referral", json={"username": username})
+            create_response.raise_for_status()
+            referral_link = create_response.json().get("referralLink")
+        else:
+            response.raise_for_status()
+            referral_link = response.json().get("referralLink")
+        
         if referral_link:
             await message.reply(f"Ваша реферальная ссылка: {referral_link}")
         else:
