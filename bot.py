@@ -54,7 +54,6 @@ async def send_start_message(message: Message):
         reply_markup=commands_keyboard  # Отображение клавиатуры команд
     )
 
-
 # 🚦 **Приветственное сообщение с inline-кнопками (для /hi)**
 @router.message(lambda message: message.text == "Меню")
 async def send_hi(message: Message):
@@ -75,9 +74,12 @@ async def send_referral_link(message: Message):
         # Запрос реферальной ссылки у сервера
         response = requests.get(f"{SERVER_URL}/api/referral_link/{username}")
         response.raise_for_status()
-        referral_link = response.json().get("referral_link")
-        await message.reply(f"Ваша реферальная ссылка: {referral_link}")
-    except Exception as e:
+        referral_link = response.json().get("referralLink")  # Исправлено на referralLink
+        if referral_link:
+            await message.reply(f"Ваша реферальная ссылка: {referral_link}")
+        else:
+            await message.reply("Реферальная ссылка не найдена.")
+    except requests.RequestException as e:
         logging.error(f"Ошибка при получении реферальной ссылки: {e}")
         await message.reply("Не удалось получить реферальную ссылку. Попробуйте позже.")
 
@@ -97,19 +99,17 @@ async def handle_callback_query(callback_query: CallbackQuery):
 
 # 🚦 **Таблица лидеров с динамическим количеством участников**
 async def send_leaderboard(message: Message, limit: int = 10):
-    logging.info("Команда /leaderboard получена")
+    logging.info(f"Запрос таблицы лидеров с лимитом: {limit}")
 
     try:
         response = requests.get(f"{SERVER_URL}/api/leaderboard?limit={limit}", timeout=10)
         response.raise_for_status()
-        logging.info("Данные успешно получены от сервера")
+        leaderboard = response.json()
+        logging.info(f"Получены данные: {leaderboard}")
     except requests.RequestException as e:
         logging.error(f"Ошибка при запросе таблицы лидеров: {e}")
         await message.reply("Не удалось получить таблицу лидеров. Попробуйте позже.")
         return
-
-    leaderboard = response.json()
-    logging.info(f"Получены данные: {leaderboard}")
 
     if not leaderboard:
         await message.reply("Пока нет данных для таблицы лидеров.")
@@ -127,13 +127,7 @@ async def send_leaderboard(message: Message, limit: int = 10):
 
         leaderboard_text += f'{index}. {username_link}: {score}\n'
 
-    logging.info(f"Подготовленный текст для отправки:\n{leaderboard_text}")
-
-    try:
-        await message.reply(leaderboard_text, parse_mode="HTML", disable_web_page_preview=True)
-        logging.info("Сообщение отправлено успешно.")
-    except Exception as e:
-        logging.error(f"Ошибка при отправке сообщения в Telegram: {e}")
+    await message.reply(leaderboard_text, parse_mode="HTML", disable_web_page_preview=True)
 
 # 🚦 **Вывод лучшего счёта конкретного пользователя**
 async def send_my_score(message: Message):
@@ -147,20 +141,12 @@ async def send_my_score(message: Message):
     try:
         response = requests.get(f"{SERVER_URL}/api/user_score/{username}", timeout=10)
         response.raise_for_status()
-
-        # Логируем ответ сервера для отладки
-        logging.info(f"Ответ от сервера для пользователя {username}: {response.text}")
-
+        data = response.json()
+        best_score = data.get("best_score", 0)
+        await message.reply(f"Ваш лучший результат: {best_score} очков.")
     except requests.RequestException as e:
         logging.error(f"Ошибка при запросе данных пользователя {username}: {e}")
         await message.reply("Не удалось получить ваш лучший результат. Попробуйте позже.")
-        return
-
-    data = response.json()
-    best_score = data.get("best_score", 0)
-
-    response_text = f"Ваш лучший результат: {best_score} очков."
-    await message.reply(response_text)
 
 # 🚦 **Запуск бота**
 async def main():
